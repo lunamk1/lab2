@@ -2,7 +2,7 @@ import lightning as L
 import torch
 import torch.nn.functional as F
 
-class ConvAutoencoder(L.LightningModule):
+class Autoencoder(L.LightningModule):
     def __init__(
         self,
         n_input_channels=8,
@@ -61,7 +61,7 @@ class ConvAutoencoder(L.LightningModule):
             # un-flatten to (32, 5, 5)
             # (batch_size, 32, 5, 5) -> upsample to (batch_size, 16, 9, 9)
             torch.nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3,
-                                     stride=2, padding=1, output_padding=1),
+                                     stride=2, padding=1, output_padding=0),
             torch.nn.ReLU(),
             # now (batch_size, 16, 9, 9)
 
