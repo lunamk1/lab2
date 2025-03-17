@@ -2,36 +2,40 @@ data:
   patch_size: 9
 
 dataloader_train:
-  batch_size: 8192
-  num_workers: 4
+  batch_size: 512        # safe for most clusters (was 8192 = way too high)
+  num_workers: 2         # 2 workers is enough unless you see loading slowness
   shuffle: True
 
 dataloader_val:
-  batch_size: 8192
-  num_workers: 4
+  batch_size: 512
+  num_workers: 2
   shuffle: False
 
 autoencoder:
   n_input_channels: 8
-  embedding_size: 8
+  embedding_size: 16     # more expressive than 8, better feature encoding
 
 optimizer:
-  lr: 0.001
+  lr: 0.0005             # slightly lower LR tends to stabilize training
 
 trainer:
-  max_epochs: 200
-  log_every_n_steps: 50
+  max_epochs: 40         # faster dev cycles, less risk of overfitting
+  log_every_n_steps: 25  # more frequent logging for early diagnosis
+  accelerator: gpu       # assuming you want to use GPU (set to 'cpu' if needed)
 
 checkpoint:
   save_top_k: 3
-  monitor: 'val_loss'
-  mode: 'min'
-  filename: 'lab2exp-{epoch:03d}'
-    # you should change "default" to something else
-    # for your experiments
-  dirpath: 'checkpoints'
+  monitor: val_loss
+  mode: min
+  filename: lab2exp-{epoch:03d}
+  dirpath: checkpoints
+
+early_stopping:
+  monitor: val_loss
+  patience: 5
+  mode: min
+  verbose: True
+
 wandb:
-  project: 'lab2-autoencoder'
-  name: 'lab2exp'
-    # you should change "default" to something else
-    # for your experiments
+  project: lab2-autoencoder
+  name: lab2exp
