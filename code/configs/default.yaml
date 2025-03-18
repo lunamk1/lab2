@@ -34,6 +34,7 @@ early_stopping:
   monitor: val_loss
   patience: 5
   mode: min
+  min_delta: 0.001
   verbose: True
 
 wandb:
