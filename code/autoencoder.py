@@ -7,7 +7,7 @@ class Autoencoder(L.LightningModule):
         self,
         n_input_channels=8,
         patch_size=9,
-        embedding_size=16,
+        embedding_size=64, # Change into 64 embedding size
         optimizer_config=None,
     ):
         """

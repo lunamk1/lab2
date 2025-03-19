@@ -13,13 +13,16 @@ def make_data(patch_size=9):
     """
 
     # load images
-    filepaths = glob.glob("../data/*.npz")
+    filepaths = sorted(glob.glob("../data/image_data/*.npz"))
     images_long = []
-    for fp in filepaths:
+    labeled_indices = [] # Added: record labeled index
+    
+    for idx, fp in enumerate(filepaths):
         npz_data = np.load(fp)
         key = list(npz_data.files)[0]
         data = npz_data[key]
         if data.shape[1] == 11:
+            labeled_indices.append(idx) # Record index of labeled images
             data = data[:, :-1]  # remove labels
         images_long.append(data)
 
@@ -84,4 +87,4 @@ def make_data(patch_size=9):
             patches_img.append(patch.astype(np.float32))
         patches.append(patches_img)
 
-    return images_long, patches
+    return images_long, patches, labeled_indices

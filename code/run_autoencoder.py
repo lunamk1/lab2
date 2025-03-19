@@ -33,7 +33,7 @@ torch.cuda.empty_cache()
 
 # ------------------------ Prepare Data ------------------------
 print("Making patch data...")
-_, patches = make_data(patch_size=config["data"]["patch_size"])
+_, patches, _ = make_data(patch_size=config["data"]["patch_size"])
 all_patches = [patch for image_patches in patches for patch in image_patches]
 
 print(f"Total patches loaded: {len(all_patches)}")

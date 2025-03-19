@@ -6,6 +6,8 @@ import torch
 import pandas as pd
 import numpy as np
 import yaml
+import glob
+import os
 from tqdm import tqdm
 
 from autoencoder import Autoencoder
@@ -27,16 +29,28 @@ checkpoint = torch.load(checkpoint_path, map_location=map_location)
 model.load_state_dict(checkpoint["state_dict"])
 # put the model in evaluation mode
 model.eval()
+filepaths = sorted(glob.glob("../data/image_data/*.npz"))
 
 print("Making the patch data")
-images_long, patches = make_data(patch_size=config["data"]["patch_size"])
+# receive labeled_indices
+images_long, patches, labeled_indices = make_data(patch_size=config["data"]["patch_size"])
 
 print("Obtaining embeddings")
 # get the embedding for each patch
 embeddings = []  # what we will save
 images_embedded = []  # for visualization
 
-for i in tqdm(range(len(images_long))):
+for i in tqdm(labeled_indices):
+    fp = filepaths[i]  # Get the file path based on the index
+    npz_data = np.load(fp)
+    key = list(npz_data.files)[0]
+    raw_data = npz_data[key]  # Original data (including label column)
+    
+    if raw_data.shape[1] == 11:  # 带标签的数据
+        labels = raw_data[:, -1]  # 最后一列为标签
+    else:
+        labels = np.zeros(raw_data.shape[0])  # 无标签数据，填充为0
+        
     ys = images_long[i][:, 0]
     xs = images_long[i][:, 1]
 
@@ -61,25 +75,26 @@ for i in tqdm(range(len(images_long))):
         emb = emb.detach().cpu().numpy()
 
     embeddings.append(emb)
+    
+    # Add a label column and adjust the column order
+    embedding_size = config["autoencoder"]["embedding_size"]
+    embedding_df = pd.DataFrame(emb, columns=[f"ae{i}" for i in range(embedding_size)])
+    embedding_df["y"] = ys
+    embedding_df["x"] = xs
+    
+    # Add label column
+    if raw_data.shape[1] == 11:  
+        embedding_df["label"] = labels 
 
-    # represent the embedding as an image, if you want
-    img_embedded = np.zeros((emb.shape[1], height, width))
-    img_embedded[:, (ys - miny).astype(int), (xs - minx).astype(int)] = emb.T
-    images_embedded.append(img_embedded)
+    # Adjust column order：y, x, label, ae0-aeN
+    cols = ["y", "x", "label"] + [c for c in embedding_df.columns if c not in ["y", "x", "label"]]
+    embedding_df = embedding_df[cols]
+
+    # save the embeddings as csv
+    filename = os.path.basename(filepaths[i]).replace(".npz", "_ae.csv")
+    embedding_df.to_csv(f"../data/{filename}", index=False)
 
 print("Saving the embeddings")
-# save the embeddings as csv
-for i in tqdm(range(len(images_long))):
-    embedding_df = pd.DataFrame(embeddings[i], columns=[f"ae{i}" for i in range(8)])
-    embedding_df["y"] = images_long[i][:, 0]
-    embedding_df["x"] = images_long[i][:, 1]
-    # move y and x to front
-    cols = embedding_df.columns.tolist()
-    cols = cols[-2:] + cols[:-2]
-    embedding_df = embedding_df[cols]
-    # save to csv
-    embedding_df.to_csv(f"../data/image{i+1}_ae.csv", index=False)
-
 
 # here is some code to take a look at the embeddings.
 # but you should probably just load the csv files in a jupyter notebook
