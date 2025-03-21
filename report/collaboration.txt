@@ -1,1 +1,19 @@
-!!
+We have all agreed on these attributions:
+
+Luna Kim worked on:
+- Introduction 
+- DATA / EDA
+- Autoencoding py files (Transfer Learning)
+
+Zhaoyi Zhang worked on:
+- Feature Engeering
+- Autoencoding application (Transfer Learning)
+
+Connor Pestell worked on:
+- Random Forest 
+- XGBoost
+- Stability Check
+
+Kathy Li worked on:
+- Logistic Regression
+- Post-Hoc EDA
